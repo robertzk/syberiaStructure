@@ -1,0 +1,24 @@
+Package: syberiaStructure
+Type: Package
+Title: Syberia Structure
+Version: 0.1.0
+Description: Syberia provides an opinionated unified framework for
+    fast iteration on classifier development and deployment. It is
+    founded on convention over configuration and aims to solve the
+    problems of classifier-specific data preparation and
+    classifier-specific modeling parameters.
+
+    syberiaStructure is a package that facilitates the file-system
+    traversal components of Syberia.
+Authors@R: c(person("Robert", "Krzyzanowski",
+    email = "technoguyrob@gmail.com", role = c("aut", "cre")))
+Depends:
+    R (>= 3.0.0)
+Imports:
+    devtools,
+    memoise
+Suggests:
+    testthat
+License: MIT
+LazyData: true
+
