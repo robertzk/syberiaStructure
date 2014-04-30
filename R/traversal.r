@@ -33,13 +33,16 @@ syberia_root <- function(filename = NULL) {
   if (missing(filename)) {
     # If no filename was given, see if a syberia configuration was
     # given previously.
-    if (!is.null(tmp <- get_cache('syberia_project'))) tmp
-    else syberia_root(getwd())
+    return(
+      if (!is.null(tmp <- get_cache('syberia_project'))) tmp
+      else syberia_root(getwd())
+    )
   }
   
   original_filename <- filename
   filename <- normalized_filename(filename)
   if (identical(filename, FALSE)) stop("Invalid syberia filename", call. = FALSE)
+  filename <- normalizePath(filename)
   fileinfo <- file.info(filename)
   if (!fileinfo$isdir) filename <- dirname(filename)
 
