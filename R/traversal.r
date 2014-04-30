@@ -30,23 +30,31 @@
 #'   project is found, this function will return NULL.
 #' @return see the \code{filename} parameter
 syberia_root <- function(filename = NULL) {
-  if (missing(filename))
-}
-
-#' Get syberia config relative to another source file.
-get_registry_dir <- function(source_file) {
-  prev_dir <- ""
-  dir <- dirname(source_file)
-  while(prev_dir != dir) {
-    if (file.exists(file.path(dir, "syberia.config"))) {
-      if (!file.exists(.syberia_dir <- file.path(dir, ".syberia")))
-        dir.create(.syberia_dir) # create .syberia directory
-      return(.syberia_dir)
-    }
-    prev_dir <- dir
-    dir <- dirname(prev_dir)
+  if (missing(filename)) {
+    # If no filename was given, see if a syberia configuration was
+    # given previously.
+    if (!is.null(tmp <- get_cache('syberia_project'))) tmp
+    else syberia_root(getwd())
   }
-  stop("No syberia.config file found -- please create it in the root ",
-       "of your syberia project.")
+  
+  original_filename <- filename
+  filename <- normalized_filename(filename)
+  if (identical(filename, FALSE)) stop("Invalid syberia filename", call. = FALSE)
+  fileinfo <- file.info(filename)
+  if (!fileinfo$isdir) filename <- dirname(filename)
+
+  repeat {
+    if (file.exists(tmp <- file.path(filename, 'syberia.config'))) {
+      filename <- tmp
+      break
+    }
+    prev_dir <- filename
+    filename <- dirname(filename)
+    if (filename == prev_dir)
+      # Reached root of filesystem
+      stop("No syberia project found relative to: ",
+           original_filename, call. = FALSE)
+  }
+  filename
 }
 
