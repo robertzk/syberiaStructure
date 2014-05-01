@@ -1,3 +1,4 @@
 export(syberia_models)
+export(syberia_project)
 export(syberia_root)
 import(devtools)

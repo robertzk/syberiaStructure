@@ -66,6 +66,9 @@ syberia_root <- function(filename = NULL, error = FALSE) {
   filename
 }
 
+#' @export
+syberia_project <- syberia_root
+
 #' Verifies that the given filename points to the base of a syberia project.
 #'
 #' @param filename character. The directory supposedly containing a syberia
