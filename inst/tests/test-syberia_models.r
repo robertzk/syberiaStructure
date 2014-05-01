@@ -2,6 +2,7 @@ context('syberia_models')
 
 local({
   syberia_models <- force(syberia_models)
+  environment(syberia_models) <- new.env(parent = environment(syberia_models))
   environment(syberia_models)$is.syberia_project <- function(...) TRUE
   environment(syberia_models)$file.exists <- function(...) TRUE
   environment(syberia_models)$syberia_root <- function(...) ''
