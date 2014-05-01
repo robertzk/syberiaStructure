@@ -2,7 +2,7 @@
 \alias{syberia_root}
 \title{Determine the root path of the current Syberia project.}
 \usage{
-syberia_root(filename = NULL)
+syberia_root(filename = NULL, error = FALSE)
 }
 \arguments{
   \item{filename.}{If specified, it will attempt to find
@@ -13,6 +13,9 @@ syberia_root(filename = NULL)
   Syberia project and then by looking at the current
   directory. If no project is found, this function will
   return NULL.}
+
+  \item{error}{logical. If \code{TRUE}, it will return an
+  error if the path is not found.}
 }
 \value{
 see the \code{filename} parameter

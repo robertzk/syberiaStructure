@@ -28,19 +28,23 @@
 #'   Syberia project by first looking at the cache for the previously used
 #'   Syberia project and then by looking at the current directory. If no
 #'   project is found, this function will return NULL.
+#' @param error logical. If \code{TRUE}, it will return an error if the path
+#'   is not found.
 #' @export
 #' @return see the \code{filename} parameter
-syberia_root <- function(filename = NULL) {
+syberia_root <- function(filename = NULL, error = FALSE) {
   if (missing(filename)) {
     # If no filename was given, see if a syberia configuration was
     # given previously.
     return(
       if (!is.null(tmp <- get_cache('syberia_project'))) tmp
-      else syberia_root(getwd())
+      else syberia_root(getwd(), error = FALSE)
     )
   }
   
   original_filename <- filename
+  # TODO: Windows support?
+  if (!'/' %in% strsplit(filename, '')[[1]]) filename <- file.path('.', filename)
   filename <- suppressWarnings(normalizePath(filename))
   fileinfo <- file.info(filename)
   if (is.na(fileinfo$isdir) || !fileinfo$isdir) filename <- dirname(filename)
@@ -48,11 +52,13 @@ syberia_root <- function(filename = NULL) {
   repeat {
     if (file.exists(file.path(filename, 'syberia.config'))) break
     prev_dir <- filename
-    filename <- dirname(filename)
+    filename <- suppressWarnings(normalizePath(dirname(filename)))
     if (filename == prev_dir)
       # Reached root of filesystem
-      stop("No syberia project found relative to: ",
+      if (error)
+        stop("No syberia project found relative to: ",
            original_filename, call. = FALSE)
+      else return(NULL)
   }
   set_cache(filename, 'syberia_project')
   filename
@@ -65,7 +71,8 @@ syberia_root <- function(filename = NULL) {
 #' @return TRUE or FALSE according as the directory is or is not a Syberia
 #'   project (including if the directory does not exist).
 is.syberia_project <- function(filename) {
-  if (!file.exists(filename)) FALSE
+  if (!is.character(filename)) FALSE
+  else if (!tryCatch(file.exists(filename))) FALSE
   else syberia_root(filename) == normalizePath(filename)
 }
 
@@ -99,7 +106,10 @@ is.syberia_project <- function(filename) {
 syberia_models <- function(env = c('dev', 'prod'), root = syberia_root(), by_mtime = TRUE) {
   stopifnot(is.syberia_project(root))
   path <- file.path(root, 'models', env)
-  all_files <- list.files(path, recursive = TRUE)
+  all_files <- unlist(lapply(seq_along(env), function(ix)
+    file.path(env[[ix]],
+      list.files(file.path(root, 'models', env[[ix]]), recursive = TRUE))
+  ))
 
   # Find the models that have the same name as their parent directory
   dir_models <- grep('([^/]+)\\/\\1\\.r', all_files,
@@ -114,9 +124,9 @@ syberia_models <- function(env = c('dev', 'prod'), root = syberia_root(), by_mti
 
   models <- c(dir_models, remaining_models)
   if (identical(by_mtime, TRUE))
-    models <- models[order(-sapply(file.path(root, 'models', env, models),
+    models <- models[order(-sapply(file.path(root, 'models', models),
                                   function(f) file.info(f)$mtime))]
 
-  file.path(root, 'models', env, models)
+  models
 }
 
