@@ -128,15 +128,18 @@ syberia_models <- function(pattern = '', env = c('dev', 'prod'),
   # Find the models that have the same name as their parent directory
   dir_models <- grep('([^/]+)\\/\\1\\.r', all_files,
                      value = TRUE, ignore.case = TRUE)
+
   # Remove any model files in same directories as the dir_models
   lies_in_dir <- function(file, dir) substring(file, 1, nchar(dir)) == dir
   in_any_dir <- function(file, dirs) 
     any(vapply(dirs, lies_in_dir, logical(1), file = file))
+
   remaining_models <- vapply(all_files, Negate(in_any_dir), logical(1),
                              dirs = vapply(dir_models, dirname, character(1)))
   remaining_models <- all_files[remaining_models]
 
   models <- c(dir_models, remaining_models)
+
   if (identical(by_mtime, TRUE))
     models <- models[order(-vapply(file.path(root, 'models', models),
       function(f) file.info(f)$mtime, numeric(1)))]
