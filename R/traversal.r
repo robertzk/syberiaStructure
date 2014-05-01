@@ -94,6 +94,11 @@ is.syberia_project <- function(filename) {
 #' no longer be considered a model object (it would be considered
 #' a file with helper functions).
 #'
+#' @param pattern character. A set of characters by which to filter.
+#'   This uses the same format as the popular ctrl+p plugin for vim.
+#'   Namely, it will look for adjacent instances of such characters
+#'   regardless of any interpolating characters. For example,
+#'   'ace' will match 'abcde' but also 'abcdfghe' but not 'aebcd'.
 #' @param env character. The syberia environment (e.g., \code{'dev'} or
 #'   \code{'prod'}. The default is \code{c('dev', 'prod')}.
 #' @param root character. The root of the syberia project. The default
@@ -103,13 +108,20 @@ is.syberia_project <- function(filename) {
 #' @seealso \code{\link{syberia_root}}
 #' @export
 #' @return a list of filenames containing syberia models
-syberia_models <- function(env = c('dev', 'prod'), root = syberia_root(), by_mtime = TRUE) {
+syberia_models <- function(pattern = '', env = c('dev', 'prod'),
+                           root = syberia_root(), by_mtime = TRUE) {
   stopifnot(is.syberia_project(root))
   path <- file.path(root, 'models', env)
   all_files <- unlist(lapply(seq_along(env), function(ix)
     file.path(env[[ix]],
       list.files(file.path(root, 'models', env[[ix]]), recursive = TRUE))
   ))
+
+  if (!identical(filter, '')) {
+    pattern <- gsub('([]./\\*+()])', '\\\\\\1', pattern)
+    pattern <- gsub('([^\\])', '\\1.*', pattern) # turn this into ctrl+p
+    all_files <- all_files[grep(pattern, all_files)]
+  }
 
   # Find the models that have the same name as their parent directory
   dir_models <- grep('([^/]+)\\/\\1\\.r', all_files,
@@ -124,8 +136,8 @@ syberia_models <- function(env = c('dev', 'prod'), root = syberia_root(), by_mti
 
   models <- c(dir_models, remaining_models)
   if (identical(by_mtime, TRUE))
-    models <- models[order(-sapply(file.path(root, 'models', models),
-                                  function(f) file.info(f)$mtime))]
+    models <- models[order(-vapply(file.path(root, 'models', models),
+      function(f) file.info(f)$mtime, numeric(1)))]
 
   models
 }
