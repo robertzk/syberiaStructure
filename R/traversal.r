@@ -28,6 +28,7 @@
 #'   Syberia project by first looking at the cache for the previously used
 #'   Syberia project and then by looking at the current directory. If no
 #'   project is found, this function will return NULL.
+#' @export
 #' @return see the \code{filename} parameter
 syberia_root <- function(filename = NULL) {
   if (missing(filename)) {
@@ -40,9 +41,9 @@ syberia_root <- function(filename = NULL) {
   }
   
   original_filename <- filename
-  filename <- normalizePath(filename)
+  filename <- suppressWarnings(normalizePath(filename))
   fileinfo <- file.info(filename)
-  if (!fileinfo$isdir) filename <- dirname(filename)
+  if (is.na(fileinfo$isdir) || !fileinfo$isdir) filename <- dirname(filename)
 
   repeat {
     if (file.exists(file.path(filename, 'syberia.config'))) break
@@ -93,8 +94,9 @@ is.syberia_project <- function(filename) {
 #' @param by_mtime logical. Whether or not to sort the models in descending
 #'   order by last modified time. The default is \code{TRUE}.
 #' @seealso \code{\link{syberia_root}}
+#' @export
 #' @return a list of filenames containing syberia models
-syberia_models <- function(env = 'dev', root = syberia_root(), by_mtime = TRUE) {
+syberia_models <- function(env = c('dev', 'prod'), root = syberia_root(), by_mtime = TRUE) {
   stopifnot(is.syberia_project(root))
   path <- file.path(root, 'models', env)
   if (!file.exists(path))
@@ -118,6 +120,6 @@ syberia_models <- function(env = 'dev', root = syberia_root(), by_mtime = TRUE) 
     models <- models[order(-sapply(file.path(root, 'models', env, models),
                                   function(f) file.info(f)$mtime))]
 
-  models
+  file.path(root, 'models', env, models)
 }
 

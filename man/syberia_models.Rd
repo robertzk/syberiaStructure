@@ -2,7 +2,8 @@
 \alias{syberia_models}
 \title{Find all the model objects in a Syberia project.}
 \usage{
-syberia_models(env = "dev", root = syberia_root(), by_mtime = TRUE)
+syberia_models(env = c("dev", "prod"), root = syberia_root(),
+  by_mtime = TRUE)
 }
 \arguments{
   \item{env}{character. The syberia environment (e.g.,
