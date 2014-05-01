@@ -103,7 +103,7 @@ syberia_models <- function(env = 'dev', root = syberia_root(), by_mtime = TRUE) 
   all_files <- list.files(path, recursive = TRUE)
 
   # Find the models that have the same name as their parent directory
-  dir_models <- grep('\\/([^/]+)\\/\\1\\.r', all_files,
+  dir_models <- grep('([^/]+)\\/\\1\\.r', all_files,
                      value = TRUE, ignore.case = TRUE)
   # Remove any model files in same directories as the dir_models
   lies_in_dir <- function(file, dir) substring(file, 1, nchar(dir)) == dir
