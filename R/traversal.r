@@ -40,17 +40,12 @@ syberia_root <- function(filename = NULL) {
   }
   
   original_filename <- filename
-  filename <- normalized_filename(filename)
-  if (identical(filename, FALSE)) stop("Invalid syberia filename", call. = FALSE)
   filename <- normalizePath(filename)
   fileinfo <- file.info(filename)
   if (!fileinfo$isdir) filename <- dirname(filename)
 
   repeat {
-    if (file.exists(tmp <- file.path(filename, 'syberia.config'))) {
-      filename <- tmp
-      break
-    }
+    if (file.exists(file.path(filename, 'syberia.config'))) break
     prev_dir <- filename
     filename <- dirname(filename)
     if (filename == prev_dir)
@@ -58,6 +53,71 @@ syberia_root <- function(filename = NULL) {
       stop("No syberia project found relative to: ",
            original_filename, call. = FALSE)
   }
+  set_cache(filename, 'syberia_project')
   filename
+}
+
+#' Verifies that the given filename points to the base of a syberia project.
+#'
+#' @param filename character. The directory supposedly containing a syberia
+#'   project.
+#' @return TRUE or FALSE according as the directory is or is not a Syberia
+#'   project (including if the directory does not exist).
+is.syberia_project <- function(filename) {
+  if (!file.exists(filename)) FALSE
+  else syberia_root(filename) == normalizePath(filename)
+}
+
+
+#' Find all the model objects in a Syberia project.
+#'
+#' The convention is that model files have the same name
+#' as the directory they are contained in (this allows other
+#' files in the same directory to be used as helper files).
+#' If no such file exists in a directory, all files are
+#' assumed to be model files. For example, if we have
+#'
+#' default/en-US/model1.r
+#' default/en-US/model2/model2.r
+#' default/en-US/model2/helper.r
+#'
+#' only the first two will be considered to be model objects.
+#' If there was a default/en-US/en-US.r, then the first would
+#' no longer be considered a model object (it would be considered
+#' a file with helper functions).
+#'
+#' @param env character. The syberia environment (e.g., \code{'dev'} or
+#'   \code{'prod'}. The default is \code{c('dev', 'prod')}.
+#' @param root character. The root of the syberia project. The default
+#'   is \code{syberia_root()}.
+#' @param by_mtime logical. Whether or not to sort the models in descending
+#'   order by last modified time. The default is \code{TRUE}.
+#' @seealso \code{\link{syberia_root}}
+#' @return a list of filenames containing syberia models
+syberia_models <- function(env = 'dev', root = syberia_root(), by_mtime = TRUE) {
+  stopifnot(is.syberia_project(root))
+  path <- file.path(root, 'models', env)
+  if (!file.exists(path))
+    stop("There is no syberia environment '", env, "'", call. = FALSE)
+
+  all_files <- list.files(path, recursive = TRUE)
+
+  # Find the models that have the same name as their parent directory
+  dir_models <- grep('\\/([^/]+)\\/\\1\\.r', all_files,
+                     value = TRUE, ignore.case = TRUE)
+  # Remove any model files in same directories as the dir_models
+  lies_in_dir <- function(file, dir) substring(file, 1, nchar(dir)) == dir
+  in_any_dir <- function(file, dirs) 
+    any(vapply(dirs, lies_in_dir, logical(1), file = file))
+  remaining_models <- vapply(all_files, Negate(in_any_dir), logical(1),
+                             dirs = vapply(dir_models, dirname, character(1)))
+  remaining_models <- all_files[remaining_models]
+
+  models <- c(dir_models, remaining_models)
+  if (identical(by_mtime, TRUE))
+    models <- models[order(-sapply(file.path(root, 'models', env, models),
+                                  function(f) file.info(f)$mtime))]
+
+  models
 }
 
