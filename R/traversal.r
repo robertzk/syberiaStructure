@@ -99,9 +99,6 @@ is.syberia_project <- function(filename) {
 syberia_models <- function(env = c('dev', 'prod'), root = syberia_root(), by_mtime = TRUE) {
   stopifnot(is.syberia_project(root))
   path <- file.path(root, 'models', env)
-  if (!file.exists(path))
-    stop("There is no syberia environment '", env, "'", call. = FALSE)
-
   all_files <- list.files(path, recursive = TRUE)
 
   # Find the models that have the same name as their parent directory
