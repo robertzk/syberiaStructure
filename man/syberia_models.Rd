@@ -2,10 +2,17 @@
 \alias{syberia_models}
 \title{Find all the model objects in a Syberia project.}
 \usage{
-syberia_models(env = c("dev", "prod"), root = syberia_root(),
-  by_mtime = TRUE)
+syberia_models(pattern = "", env = c("dev", "prod"),
+  root = syberia_root(), by_mtime = TRUE)
 }
 \arguments{
+  \item{pattern}{character. A set of characters by which to
+  filter.  This uses the same format as the popular ctrl+p
+  plugin for vim.  Namely, it will look for adjacent
+  instances of such characters regardless of any
+  interpolating characters. For example, 'ace' will match
+  'abcde' but also 'abcdfghe' but not 'aebcd'.}
+
   \item{env}{character. The syberia environment (e.g.,
   \code{'dev'} or \code{'prod'}. The default is
   \code{c('dev', 'prod')}.}

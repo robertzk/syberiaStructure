@@ -11,8 +11,9 @@ syberia_root(filename = NULL, error = FALSE)
   try to intelligently discern the current Syberia project
   by first looking at the cache for the previously used
   Syberia project and then by looking at the current
-  directory. If no project is found, this function will
-  return NULL.}
+  directory. If no project is found, the last resort is to
+  look for a \code{syberia.root} option. If not found, this
+  will return \code{NULL}.}
 
   \item{error}{logical. If \code{TRUE}, it will return an
   error if the path is not found.}

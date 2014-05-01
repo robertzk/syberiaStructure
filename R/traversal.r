@@ -27,7 +27,8 @@
 #'   If not given, Syberia will try to intelligently discern the current
 #'   Syberia project by first looking at the cache for the previously used
 #'   Syberia project and then by looking at the current directory. If no
-#'   project is found, this function will return NULL.
+#'   project is found, the last resort is to look for a \code{syberia.root}
+#'   option. If not found, this will return \code{NULL}.
 #' @param error logical. If \code{TRUE}, it will return an error if the path
 #'   is not found.
 #' @export
@@ -37,8 +38,9 @@ syberia_root <- function(filename = NULL, error = FALSE) {
     # If no filename was given, see if a syberia configuration was
     # given previously.
     return(
-      if (!is.null(tmp <- get_cache('syberia_project'))) tmp
-      else syberia_root(getwd(), error = FALSE)
+      get_cache('syberia_project') %||%
+      syberia_root(getwd(), error = FALSE) %||%
+      options('syberia.root')
     )
   }
   
