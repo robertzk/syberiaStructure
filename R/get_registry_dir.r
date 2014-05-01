@@ -1,5 +1,5 @@
 #' Get syberia config relative to another source file.
-get_registry_dir <- function(source_file) {
+.get_registry_dir <- function(source_file) {
   prev_dir <- ""
   dir <- dirname(source_file)
   while(prev_dir != dir) {
@@ -17,6 +17,6 @@ get_registry_dir <- function(source_file) {
 
 if ('memoise' %in% installed.packages()) {
   require(memoise)
-  memoise(get_registry_dir)
+  memoise(.get_registry_dir)
 }
 
