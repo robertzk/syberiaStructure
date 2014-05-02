@@ -40,7 +40,7 @@ syberia_root <- function(filename = NULL, error = FALSE) {
     return(
       get_cache('syberia_project') %||%
       syberia_root(getwd(), error = FALSE) %||%
-      options('syberia.root')
+      options('syberia.root')[[1]]
     )
   }
   
