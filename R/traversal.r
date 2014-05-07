@@ -214,10 +214,12 @@ syberia_objects <- function(pattern = '', type = NULL, subtype = NULL, root = sy
     )
   ))
 
-  if (identical(fixed, FALSE) && !identical(pattern, '')) {
-    pattern <- gsub('([]./\\*+()])', '\\\\\\1', pattern)
-    pattern <- gsub('([^\\])', '\\1.*', pattern) # turn this into ctrl+p
-    all_files <- all_files[grep(pattern, all_files)]
+  if (!identical(pattern, '')) {
+    if (identical(fixed, FALSE)) {
+      pattern <- gsub('([]./\\*+()])', '\\\\\\1', pattern)
+      pattern <- gsub('([^\\])', '\\1.*', pattern) # turn this into ctrl+p
+    }
+    all_files <- all_files[grep(pattern, all_files, fixed = !identical(fixed, FALSE))]
   }
 
   # Find the objects that have the same name as their parent directory
