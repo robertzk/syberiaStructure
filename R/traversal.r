@@ -75,6 +75,7 @@ syberia_project <- syberia_root
 #'   project.
 #' @return TRUE or FALSE according as the directory is or is not a Syberia
 #'   project (including if the directory does not exist).
+#' @name is.syberia_project
 is.syberia_project <- function(filename) {
   if (!is.character(filename)) FALSE
   else if (!tryCatch(file.exists(filename))) FALSE
@@ -185,6 +186,7 @@ syberia_models <- function(pattern = '', env = c('dev', 'prod'),
 #' @seealso \code{\link{syberia_models}}
 #' @export
 #' @return a list of filenames containing syberia objects
+#' @name syberia_objects
 syberia_objects <- function(pattern = '', type = NULL, subtype = NULL, root = syberia_root(),
                            by_mtime = TRUE, fixed = FALSE) {
 }

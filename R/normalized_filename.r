@@ -6,6 +6,7 @@
 #' Otherwise, it returns FALSE.
 #'
 #' @param filename a character. The name of a file.
+#' @name normalized_filename
 #' @examples
 #' \dontrun{
 #' normalize_filename('test') # will find test.r or test.R
@@ -18,3 +19,4 @@ normalized_filename <- function(filename) {
   else if (file.exists(tmp <- pp("#{filename}.R"))) tmp
   else FALSE
 }
+
