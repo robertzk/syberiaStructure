@@ -4,7 +4,7 @@
 \title{Find all the model objects in a Syberia project.}
 \usage{
 syberia_models(pattern = "", env = c("dev", "prod"),
-  root = syberia_root(), by_mtime = TRUE)
+  root = syberia_root(), by_mtime = TRUE, fixed = FALSE)
 }
 \arguments{
 \item{pattern}{character. A set of characters by which to filter.
@@ -21,6 +21,10 @@ is \code{syberia_root()}.}
 
 \item{by_mtime}{logical. Whether or not to sort the models in descending
 order by last modified time. The default is \code{TRUE}.}
+
+\item{fixed}{logical. Whether or not to use smart interpolation, like in
+the description for the \code{pattern} argument. If \code{TRUE},
+only substring matching is used.}
 }
 \value{
 a list of filenames containing syberia models

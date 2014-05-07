@@ -111,44 +111,15 @@ is.syberia_project <- function(filename) {
 #'   is \code{syberia_root()}.
 #' @param by_mtime logical. Whether or not to sort the models in descending
 #'   order by last modified time. The default is \code{TRUE}.
+#' @param fixed logical. Whether or not to use smart interpolation, like in
+#'   the description for the \code{pattern} argument. If \code{TRUE},
+#'   only substring matching is used.
 #' @seealso \code{\link{syberia_root}}
 #' @export
 #' @return a list of filenames containing syberia models
 syberia_models <- function(pattern = '', env = c('dev', 'prod'),
-                           root = syberia_root(), by_mtime = TRUE) {
-  stopifnot(is.syberia_project(root))
-  path <- file.path(root, 'models', env)
-  all_files <- unlist(lapply(seq_along(env), function(ix)
-    file.path(env[[ix]],
-      list.files(file.path(root, 'models', env[[ix]]), recursive = TRUE))
-  ))
-
-  if (!identical(filter, '')) {
-    pattern <- gsub('([]./\\*+()])', '\\\\\\1', pattern)
-    pattern <- gsub('([^\\])', '\\1.*', pattern) # turn this into ctrl+p
-    all_files <- all_files[grep(pattern, all_files)]
-  }
-
-  # Find the models that have the same name as their parent directory
-  dir_models <- grep('([^/]+)\\/\\1\\.r', all_files,
-                     value = TRUE, ignore.case = TRUE)
-
-  # Remove any model files in same directories as the dir_models
-  lies_in_dir <- function(file, dir) substring(file, 1, nchar(dir)) == dir
-  in_any_dir <- function(file, dirs) 
-    any(vapply(dirs, lies_in_dir, logical(1), file = file))
-
-  remaining_models <- vapply(all_files, Negate(in_any_dir), logical(1),
-                             dirs = vapply(dir_models, dirname, character(1)))
-  remaining_models <- all_files[remaining_models]
-
-  models <- c(dir_models, remaining_models)
-
-  if (identical(by_mtime, TRUE))
-    models <- models[order(-vapply(file.path(root, 'models', models),
-      function(f) file.info(f)$mtime, numeric(1)))]
-
-  models
+                           root = syberia_root(), by_mtime = TRUE, fixed = FALSE) {
+  syberia_objects(pattern, 'models', env, root, by_mtime, fixed)
 }
 
 #' Find all the syberia objects of the given type and subtype in a Syberia project.
@@ -189,5 +160,43 @@ syberia_models <- function(pattern = '', env = c('dev', 'prod'),
 #' @name syberia_objects
 syberia_objects <- function(pattern = '', type = NULL, subtype = NULL, root = syberia_root(),
                            by_mtime = TRUE, fixed = FALSE) {
+
+  stopifnot(is.syberia_project(root))
+  file_path_with_potential_nulls <-
+    function(...) do.call("file.path", Filter(Negate(is.null), list(...)))
+  path <- file_path_with_potential_nulls(root, type, subtype)
+  all_files <- unlist(lapply(subtype %||% list(NULL), function(name)
+    file_path_with_potential_nulls(name, list.files(
+      file_path_with_potential_nulls(root, type, name), recursive = TRUE)
+    )
+  ))
+
+  if (identical(fixed, FALSE) && !identical(pattern, '')) {
+    pattern <- gsub('([]./\\*+()])', '\\\\\\1', pattern)
+    pattern <- gsub('([^\\])', '\\1.*', pattern) # turn this into ctrl+p
+    all_files <- all_files[grep(pattern, all_files)]
+  }
+
+  # Find the objects that have the same name as their parent directory
+  dir_objects <- grep('([^/]+)\\/\\1\\.r', all_files,
+                     value = TRUE, ignore.case = TRUE)
+
+  # Remove any object files in same directories as the dir_objects
+  lies_in_dir <- function(file, dir) substring(file, 1, nchar(dir)) == dir
+  in_any_dir <- function(file, dirs) 
+    any(vapply(dirs, lies_in_dir, logical(1), file = file))
+
+  remaining_objects <- vapply(all_files, Negate(in_any_dir), logical(1),
+                             dirs = vapply(dir_objects, dirname, character(1)))
+  remaining_objects <- all_files[remaining_objects]
+
+  objects <- c(dir_objects, remaining_objects)
+
+  if (identical(by_mtime, TRUE))
+    objects <- objects[
+      order(-vapply(file_path_with_potential_nulls(root, type, objects),
+                    function(f) file.info(f)$mtime, numeric(1)))]
+
+  objects
 }
 

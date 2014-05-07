@@ -1,23 +1,24 @@
 context('syberia_models')
 
 local({
-  syberia_models <- force(syberia_models)
-  environment(syberia_models) <- new.env(parent = environment(syberia_models))
-  environment(syberia_models)$is.syberia_project <- function(...) TRUE
-  environment(syberia_models)$file.exists <- function(...) TRUE
-  environment(syberia_models)$syberia_root <- function(...) ''
+  syberia_objects <- force(syberia_objects)
+  environment(syberia_objects) <- new.env(parent = environment(syberia_objects))
+  environment(syberia_objects)$is.syberia_project <- function(...) TRUE
+  environment(syberia_objects)$file.exists <- function(...) TRUE
+  environment(syberia_objects)$syberia_root <- function(...) ''
+  environment(syberia_models)$syberia_objects <- syberia_objects
 
   test_that('it can discriminate between directoried and non-directoried models', {
     models <- c('model_one/model_one.r', 'model_one/helper.r', 'model_two.r')
-    environment(syberia_models)$list.files <- function(...) models
+    environment(syberia_objects)$list.files <- function(...) models
     expect_identical(syberia_models('dev', by_mtime = FALSE),
                      file.path('dev', models[c(1,3)]))
   })
 
   test_that('it can use modified time to sort models', {
     models <- c("model1.r", "model2.r")
-    environment(syberia_models)$list.files <- function(...) models
-    environment(syberia_models)$file.info <- 
+    environment(syberia_objects)$list.files <- function(...) models
+    environment(syberia_objects)$file.info <- 
       function(f) list(mtime = as.integer(gsub('[^0-9]', '', f)))
     expect_identical(syberia_models('dev', by_mtime = TRUE),
                      rev(file.path('dev', models)))
