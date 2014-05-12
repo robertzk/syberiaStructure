@@ -1,4 +1,4 @@
-#' Get syberia config relative to another source file.
+# Get syberia config relative to another source file.
 .get_registry_dir <- function(source_file) {
   prev_dir <- ""
   dir <- dirname(source_file)

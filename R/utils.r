@@ -10,6 +10,7 @@
 #' @param fn function. The function to memoize.
 #' @return nothing, but \code{try_memoize} will use non-standard
 #'   evaluation to memoize in the calling environment.
+#' @name try_memoize
 try_memoize <- function(fn) {
   if ('memoise' %in% installed.packages()) {
     require(memoise)

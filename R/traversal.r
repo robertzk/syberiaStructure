@@ -66,6 +66,8 @@ syberia_root <- function(filename = NULL, error = FALSE) {
   filename
 }
 
+# TODO(RK): A syberia_set<- replace method that can set, e.g., the root explicitly
+
 #' @export
 syberia_project <- syberia_root
 
@@ -75,6 +77,7 @@ syberia_project <- syberia_root
 #'   project.
 #' @return TRUE or FALSE according as the directory is or is not a Syberia
 #'   project (including if the directory does not exist).
+#' @name is.syberia_project
 is.syberia_project <- function(filename) {
   if (!is.character(filename)) FALSE
   else if (!tryCatch(file.exists(filename))) FALSE
@@ -110,43 +113,135 @@ is.syberia_project <- function(filename) {
 #'   is \code{syberia_root()}.
 #' @param by_mtime logical. Whether or not to sort the models in descending
 #'   order by last modified time. The default is \code{TRUE}.
+#' @param fixed logical. Whether or not to use smart interpolation, like in
+#'   the description for the \code{pattern} argument. If \code{TRUE},
+#'   only substring matching is used.
 #' @seealso \code{\link{syberia_root}}
 #' @export
 #' @return a list of filenames containing syberia models
 syberia_models <- function(pattern = '', env = c('dev', 'prod'),
-                           root = syberia_root(), by_mtime = TRUE) {
+                           root = syberia_root(), by_mtime = TRUE, fixed = FALSE) {
+  syberia_objects(pattern, 'models', env, root, by_mtime, fixed)
+}
+
+#' Find all the data sources in a Syberia project.
+#'
+#' The convention is that data source files have the same name
+#' as the directory they are contained in (this allows other
+#' files in the same directory to be used as helper files).
+#' If no such file exists in a directory, all files are
+#' assumed to be data source files. For example, if we have
+#'
+#' some_data_type/data_source1.r
+#' some_data_type/data_source2/data_source2.r
+#' some_data_type/data_source2/helpers.r
+#'
+#' only the first two will be considered to be data sources.
+#' If there was a some_data_type/some_data_type.r, then the first would
+#' no longer be considered a model object (it would be considered
+#' a file with helper functions).
+#'
+#' @param pattern character. A set of characters by which to filter.
+#'   This uses the same format as the popular ctrl+p plugin for vim.
+#'   Namely, it will look for adjacent instances of such characters
+#'   regardless of any interpolating characters. For example,
+#'   'ace' will match 'abcde' but also 'abcdfghe' but not 'aebcd'.
+#' @param type character. This can be either \code{"sources"} or \code{"test"}.
+#'   The default is the former, whereas the latter will fetch data source tests.
+#' @param root character. The root of the syberia project. The default
+#'   is \code{syberia_root()}.
+#' @param by_mtime logical. Whether or not to sort the data sources in descending
+#'   order by last modified time. The default is \code{TRUE}.
+#' @param fixed logical. Whether or not to use smart interpolation, like in
+#'   the description for the \code{pattern} argument. If \code{TRUE},
+#'   only substring matching is used.
+#' @seealso \code{\link{syberia_root}}
+#' @export
+#' @return a list of filenames containing syberia data sources
+syberia_data_sources <- function(pattern = '', type = "sources", root = syberia_root(),
+                                 by_mtime = TRUE, fixed = FALSE) {
+  stopifnot(type %in% c('sources', 'test'))
+  # TODO(RK): Make removing the "sources/" prefix a parameter in syberia_objects instead
+  gsub('^[^/]+/', '', syberia_objects(pattern, 'data', type, root, by_mtime, fixed))
+}
+
+#' Find all the syberia objects of the given type and subtype in a Syberia project.
+#'
+#' Syberia objects can refer to models, data sources, or tests. The essence
+#' of the idea is that the \code{pattern} parameter specifies a set of consecutive
+#' character by which to look for, and \code{type} specifies the subdirectory
+#' (an additional subdirectory of that directory can be set using the \code{subtype}
+#' parameter).
+#'
+#' For example, if we are looking for models in the prod environment matching "gbm",
+#' we could try: \code{syberia_objects('gbm', 'models', 'prod')}.
+#'
+#' Note, however, that the first argument (\code{pattern}) does not look for a
+#' substring match, but an interpolated match: for example, looking for 'abc'
+#' will match "a1b2c" or "model_a/submodel_bc" but will not match "acb" or
+#' any string where the characters 'a', 'b', and 'c' do not appear consecutively
+#' (with arbitrary strings in between them).
+#'
+#' @param pattern character. A set of characters by which to filter.
+#'   This uses the same format as the popular ctrl+p plugin for vim.
+#'   Namely, it will look for adjacent instances of such characters
+#'   regardless of any interpolating characters. For example,
+#'   'ace' will match 'abcde' but also 'abcdfghe' but not 'aebcd'.
+#' @param type character. A subdirectory to look in. For example,
+#'   \code{type = 'models'} will look in the \code{models} subdirectory
+#'   of the root directory of the Syberia project.
+#' @param root character. The root of the syberia project. The default
+#'   is \code{syberia_root()}.
+#' @param by_mtime logical. Whether or not to sort the models in descending
+#'   order by last modified time. The default is \code{TRUE}.
+#' @param fixed logical. Whether or not to use smart interpolation, like in
+#'   the description for the \code{pattern} argument. If \code{TRUE},
+#'   only substring matching is used.
+#' @seealso \code{\link{syberia_models}}
+#' @export
+#' @return a list of filenames containing syberia objects
+#' @name syberia_objects
+syberia_objects <- function(pattern = '', type = NULL, subtype = NULL, root = syberia_root(),
+                           by_mtime = TRUE, fixed = FALSE) {
+
   stopifnot(is.syberia_project(root))
-  path <- file.path(root, 'models', env)
-  all_files <- unlist(lapply(seq_along(env), function(ix)
-    file.path(env[[ix]],
-      list.files(file.path(root, 'models', env[[ix]]), recursive = TRUE))
+  file_path_with_potential_nulls <-
+    function(...) do.call("file.path", Filter(Negate(is.null), list(...)))
+  path <- file_path_with_potential_nulls(root, type, subtype)
+  all_files <- unlist(lapply(subtype %||% list(NULL), function(name)
+    file_path_with_potential_nulls(name, list.files(
+      file_path_with_potential_nulls(root, type, name), recursive = TRUE)
+    )
   ))
 
-  if (!identical(filter, '')) {
-    pattern <- gsub('([]./\\*+()])', '\\\\\\1', pattern)
-    pattern <- gsub('([^\\])', '\\1.*', pattern) # turn this into ctrl+p
-    all_files <- all_files[grep(pattern, all_files)]
+  if (!identical(pattern, '')) {
+    if (identical(fixed, FALSE)) {
+      pattern <- gsub('([]./\\*+()])', '\\\\\\1', pattern)
+      pattern <- gsub('([^\\])', '\\1.*', pattern) # turn this into ctrl+p
+    }
+    all_files <- all_files[grep(pattern, all_files, fixed = !identical(fixed, FALSE))]
   }
 
-  # Find the models that have the same name as their parent directory
-  dir_models <- grep('([^/]+)\\/\\1\\.r', all_files,
+  # Find the objects that have the same name as their parent directory
+  dir_objects <- grep('([^/]+)\\/\\1\\.r', all_files,
                      value = TRUE, ignore.case = TRUE)
 
-  # Remove any model files in same directories as the dir_models
+  # Remove any object files in same directories as the dir_objects
   lies_in_dir <- function(file, dir) substring(file, 1, nchar(dir)) == dir
   in_any_dir <- function(file, dirs) 
     any(vapply(dirs, lies_in_dir, logical(1), file = file))
 
-  remaining_models <- vapply(all_files, Negate(in_any_dir), logical(1),
-                             dirs = vapply(dir_models, dirname, character(1)))
-  remaining_models <- all_files[remaining_models]
+  remaining_objects <- vapply(all_files, Negate(in_any_dir), logical(1),
+                             dirs = vapply(dir_objects, dirname, character(1)))
+  remaining_objects <- all_files[remaining_objects]
 
-  models <- c(dir_models, remaining_models)
+  objects <- c(dir_objects, remaining_objects)
 
   if (identical(by_mtime, TRUE))
-    models <- models[order(-vapply(file.path(root, 'models', models),
-      function(f) file.info(f)$mtime, numeric(1)))]
+    objects <- objects[
+      order(-vapply(file_path_with_potential_nulls(root, type, objects),
+                    function(f) file.info(f)$mtime, numeric(1)))]
 
-  models
+  objects
 }
 
