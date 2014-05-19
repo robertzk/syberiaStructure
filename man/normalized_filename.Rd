@@ -2,6 +2,9 @@
 \name{normalized_filename}
 \alias{normalized_filename}
 \title{Normalize a file name.}
+\usage{
+normalized_filename(filename)
+}
 \arguments{
 \item{filename}{a character. The name of a file.}
 }

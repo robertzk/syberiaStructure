@@ -3,9 +3,19 @@
 \alias{syberia_resource_with_modification_tracking}
 \title{Fetch a syberia resource with modification tracking.}
 \usage{
-syberia_resource_with_modification_tracking(...)
+syberia_resource_with_modification_tracking(filename, root,
+  check_helpers = TRUE, ...)
 }
 \arguments{
+\item{filename}{character. See the \code{filename} parameter of
+\code{syberia_resource}.}
+
+\item{root}{character. See the \code{root} parameter of \code{syberia_resource}.}
+
+\item{check_helpers}{logical. If the resource is in a directory with
+the same name as the resource, check all of its helpers for
+modifications as well.}
+
 \item{...}{same as arguments to \code{syberia_resource}}
 }
 \description{

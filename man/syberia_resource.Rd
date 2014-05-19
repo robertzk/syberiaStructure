@@ -2,6 +2,10 @@
 \name{syberia_resource}
 \alias{syberia_resource}
 \title{Fetch info about a file relative to a syberia directory.}
+\usage{
+syberia_resource(filename, root = syberia_root(), provides = list(),
+  body = TRUE, ...)
+}
 \arguments{
 \item{filename}{character. The filename of the R script to execute
 relative to a syberia project.}

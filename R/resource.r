@@ -88,12 +88,38 @@ syberia_resource <- function(filename, root = syberia_root(), provides = list(),
 #' encountered the resource. If a modification is spotted, the
 #' Syberia cache entry `runtime/any_modified` will be set to \code{TRUE}.
 #'
+#' @param filename character. See the \code{filename} parameter of
+#'   \code{syberia_resource}.
+#' @param root character. See the \code{root} parameter of \code{syberia_resource}.
+#' @param check_helpers logical. If the resource is in a directory with
+#'   the same name as the resource, check all of its helpers for 
+#'   modifications as well.
 #' @param ... same as arguments to \code{syberia_resource}
 #' @seealso \code{\link{syberia_resource}}
 #' @export
-syberia_resource_with_modification_tracking <- function(...) {
-  resource <- syberia_resource(...)
+syberia_resource_with_modification_tracking <- function(filename, root, check_helpers = TRUE, ...) {
+  resource <- syberia_resource(filename, root, ...)
   if (resource$current$info$mtime > resource$cached$info$mtime %||% 0)
     set_cache(TRUE, 'runtime/any_modified')
+  else if (check_helpers && !identical(TRUE, get_cache('runtime/any_modified'))) {
+    # The above condition says: if something is already modified,
+    # no need to check again.
+    filename <- normalizePath(filename)
+    resource_dir <- dirname(filename)
+
+    # If the resource is in its own subdirectory, check all helpers files for
+    # modification time as well.
+    resource_has_helpers <- basename(resource_dir) ==
+        substring(tmp <- basename(filename), 1, nchar(tmp) - 2)
+    if (resource_has_helpers) {
+      helper_files <- list.files(resource_dir, recursive = TRUE)
+      # Trigger syberia_resource_with_modification_tracking to update whether
+      # or not any helper files were modified.
+      helpers_files <- setdiff(helper_files, basename(filename))
+      for (file in helper_files) syberia_resource_with_modification_tracking(
+        file.path(resource_dir, file), root, body = FALSE, check_helpers = FALSE)
+    }
+  }
   resource
 }
+
