@@ -95,5 +95,8 @@ syberia_resource <- function(filename, root = syberia_root(), provides = list(),
 #' @seealso \code{\link{syberia_resource}}
 #' @export
 syberia_resource_with_modification_tracking <- function(...) {
-  syberia_resource(...)
+  resource <- syberia_resource(...)
+  if (resource$current$mtime > resource$cached$mtime %||% 0)
+    set_cache(TRUE, 'runtime/any_modified')
+  resource
 }
