@@ -22,7 +22,8 @@
 #' The root of the Syberia project is considered to be the directory containing
 #' the \code{syberia.config} file.
 #'
-#' @param filename. If specified, it will attempt to find the Syberia root
+#' @name syberia_root
+#' @param filename character. If specified, it will attempt to find the Syberia root
 #'   relative to the file name by traversing up its parent directories.
 #'   If not given, Syberia will try to intelligently discern the current
 #'   Syberia project by first looking at the cache for the previously used
@@ -190,6 +191,11 @@ syberia_data_sources <- function(pattern = '', type = "sources", root = syberia_
 #' @param type character. A subdirectory to look in. For example,
 #'   \code{type = 'models'} will look in the \code{models} subdirectory
 #'   of the root directory of the Syberia project.
+#' @param subtype character. A subdirectory to look in inside of the
+#'   subdirectory given by \code{type}. For example,
+#'   \code{type = 'models', subtype = 'dev'} will look in the \code{dev}
+#'   subdirectory of the \code{models} subdirectory of the root directory
+#'   of the Syberia project.
 #' @param root character. The root of the syberia project. The default
 #'   is \code{syberia_root()}.
 #' @param by_mtime logical. Whether or not to sort the models in descending
