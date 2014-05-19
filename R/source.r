@@ -6,7 +6,6 @@
 .source <- function(filename, ...) {
   filename <- normalizePath(filename)
   root <- syberia_root()
-    browser()
   if (substring(filename, 1, nchar(root)) == root &&
       identical(get_cache('runtime/executing'), TRUE)) {
     # We are running a syberia resource

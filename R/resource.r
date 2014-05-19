@@ -18,6 +18,8 @@
 #'   look for \code{filename}. The default is \code{syberia_root()}.
 #' @param provides list or environment. A list or environment of values
 #'   to provide to the file.
+#' @param body logical. Whether or not the fetch the body of the file
+#'   in the `current` and `cached` output lists.
 #' @param ... additional arguments to pass to the \code{base::source}
 #'   function that gets executed when the `value` is accessed.
 #' @return a four-element list with names `current`, `cached`, `value`,
@@ -38,7 +40,8 @@
 #'   indicating whether or not the file has been modified since last
 #'   executed by Syberia (if this was never the case, `modified` will
 #'   be \code{FALSE}).
-syberia_resource <- function(filename, root = syberia_root(), provides = list(), ...) {
+syberia_resource <- function(filename, root = syberia_root(), provides = list(),
+                             body = TRUE, ...) {
   resource_cache <- .get_registry_key('resource/resource_cache', root)
   resource_key <- function(filename, root) # Given a/b/c/d and a/b, extracts c/d
     substring(tmp <- normalizePath(filename), nchar(normalizePath(root)) + 1, nchar(tmp))
@@ -78,3 +81,19 @@ syberia_resource <- function(filename, root = syberia_root(), provides = list(),
 # TODO: (RK) It would be cool to dynamically look at the memory size of the object
 # in the result, and store it in the cache as well if it's small enough and the
 # file has not been modified.
+
+#' Fetch a syberia resource with modification tracking.
+#'
+#' Modification tracking refers to determining whether the resource has
+#' changed since its last execution by syberia. This is accomplished
+#' using the output of \code{syberia_resource}, which will return
+#' a list that includes modification time of the last time syberia
+#' encountered the resource. If a modification is spotted, the
+#' Syberia cache entry `runtime/any_modified` will be set to \code{TRUE}.
+#'
+#' @param ... same as arguments to \code{syberia_resource}
+#' @seealso \code{\link{syberia_resource}}
+#' @export
+syberia_resource_with_modification_tracking <- function(...) {
+  syberia_resource(...)
+}

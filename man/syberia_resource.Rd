@@ -3,7 +3,8 @@
 \alias{syberia_resource}
 \title{Fetch info about a file relative to a syberia directory.}
 \usage{
-syberia_resource(filename, root = syberia_root(), provides = list(), ...)
+syberia_resource(filename, root = syberia_root(), provides = list(),
+  body = TRUE, ...)
 }
 \arguments{
 \item{filename}{character. The filename of the R script to execute
@@ -14,6 +15,9 @@ look for \code{filename}. The default is \code{syberia_root()}.}
 
 \item{provides}{list or environment. A list or environment of values
 to provide to the file.}
+
+\item{body}{logical. Whether or not the fetch the body of the file
+in the `current` and `cached` output lists.}
 
 \item{...}{additional arguments to pass to the \code{base::source}
 function that gets executed when the `value` is accessed.}
