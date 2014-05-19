@@ -22,6 +22,7 @@
 #' The root of the Syberia project is considered to be the directory containing
 #' the \code{syberia.config} file.
 #'
+#' @name syberia_root
 #' @param filename character. If specified, it will attempt to find the Syberia root
 #'   relative to the file name by traversing up its parent directories.
 #'   If not given, Syberia will try to intelligently discern the current

@@ -11,12 +11,15 @@
 #' Internally, the cached information about the file is stored in the
 #' syberia project's registry under the key \code{resources/resource_cache}.
 #'
+#' @name syberia_resource
 #' @param filename character. The filename of the R script to execute
 #'   relative to a syberia project.
 #' @param root character. The root of the syberia project in which to
 #'   look for \code{filename}. The default is \code{syberia_root()}.
 #' @param provides list or environment. A list or environment of values
 #'   to provide to the file.
+#' @param ... additional arguments to pass to the \code{base::source}
+#'   function that gets executed when the `value` is accessed.
 #' @return a four-element list with names `current`, `cached`, `value`,
 #'   and `modified`. The former two will both be two-element lists containing
 #'   keys `info` and `body` (unless Syberia has never executed the file before
@@ -35,15 +38,18 @@
 #'   indicating whether or not the file has been modified since last
 #'   executed by Syberia (if this was never the case, `modified` will
 #'   be \code{FALSE}).
-syberia_resource <- function(filename, root = syberia_root(), provides = list()) {
+syberia_resource <- function(filename, root = syberia_root(), provides = list(), ...) {
   resource_cache <- .get_registry_key('resource/resource_cache', root)
   resource_key <- function(filename, root) # Given a/b/c/d and a/b, extracts c/d
     substring(tmp <- normalizePath(filename), nchar(normalizePath(root)) + 1, nchar(tmp))
   resource_key <- resource_key(filename, root)
   cache_details <- resource_cache[[resource_key]]
 
-  if (!is.environment(provides))
+  if (!is.environment(provides)) {
     provides <- if (length(provides) == 0) new.env() else as.environment(provides)
+    parent.env(provides) <- get_cache('runtime/current_env') %||% new.env()
+  }
+
   if (!file.exists(filename))
     stop("Syberia resource '", filename, "' in syberia project '", root,
          "' does not exist.", call. = FALSE)
@@ -61,7 +67,8 @@ syberia_resource <- function(filename, root = syberia_root(), provides = list())
   # TODO: (RK) For large syberia projects, maybe this should dynamically
   # switch to tracking resources using the file system rather than one big list.
 
-  value <- function() source(filename, local = provides)$value
+  source_args <- append(list(filename, local = provides), list(...))
+  value <- function() do.call(base::source, source_args)$value
   modified <- resource_info$mtime > cache_details$info$mtime %||% 0
 
   list(current = current_details, cached = cache_details,

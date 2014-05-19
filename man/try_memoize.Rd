@@ -2,9 +2,6 @@
 \name{try_memoize}
 \alias{try_memoize}
 \title{Attempt to memoize a function using the memoise package.}
-\usage{
-try_memoize(fn)
-}
 \arguments{
 \item{fn}{function. The function to memoize.}
 }
