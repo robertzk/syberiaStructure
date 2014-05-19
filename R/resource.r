@@ -42,7 +42,7 @@
 #'   be \code{FALSE}).
 syberia_resource <- function(filename, root = syberia_root(), provides = list(),
                              body = TRUE, ...) {
-  resource_cache <- .get_registry_key('resource/resource_cache', root)
+  resource_cache <- .get_registry_key('resource/resource_cache', .get_registry_dir(root))
   resource_key <- function(filename, root) # Given a/b/c/d and a/b, extracts c/d
     substring(tmp <- normalizePath(filename), nchar(normalizePath(root)) + 1, nchar(tmp))
   resource_key <- resource_key(filename, root)
@@ -58,15 +58,12 @@ syberia_resource <- function(filename, root = syberia_root(), provides = list(),
          "' does not exist.", call. = FALSE)
 
   resource_info <- file.info(filename)
-  resource_body <- paste(readLines(filename), collapse = "\n")
-
-  current_details <- list(
-    info = resource_info,
-    body = resource_body
-  )
+  current_details <- list(info = resource_info)
+  if (body) current_details$body <- paste(readLines(filename), collapse = "\n")
 
   resource_cache[[resource_key]] <- current_details
-  .set_registry_key('resource/resource_cache', resource_cache, root)
+  .set_registry_key('resource/resource_cache', resource_cache, .get_registry_dir(root))
+
   # TODO: (RK) For large syberia projects, maybe this should dynamically
   # switch to tracking resources using the file system rather than one big list.
 
@@ -96,7 +93,7 @@ syberia_resource <- function(filename, root = syberia_root(), provides = list(),
 #' @export
 syberia_resource_with_modification_tracking <- function(...) {
   resource <- syberia_resource(...)
-  if (resource$current$mtime > resource$cached$mtime %||% 0)
+  if (resource$current$info$mtime > resource$cached$info$mtime %||% 0)
     set_cache(TRUE, 'runtime/any_modified')
   resource
 }
