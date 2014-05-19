@@ -17,6 +17,12 @@ regardless of any interpolating characters. For example,
 \code{type = 'models'} will look in the \code{models} subdirectory
 of the root directory of the Syberia project.}
 
+\item{subtype}{character. A subdirectory to look in inside of the
+subdirectory given by \code{type}. For example,
+\code{type = 'models', subtype = 'dev'} will look in the \code{dev}
+subdirectory of the \code{models} subdirectory of the root directory
+of the Syberia project.}
+
 \item{root}{character. The root of the syberia project. The default
 is \code{syberia_root()}.}
 

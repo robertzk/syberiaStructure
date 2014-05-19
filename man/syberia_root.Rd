@@ -6,7 +6,7 @@
 syberia_root(filename = NULL, error = FALSE)
 }
 \arguments{
-\item{filename.}{If specified, it will attempt to find the Syberia root
+\item{filename}{character. If specified, it will attempt to find the Syberia root
 relative to the file name by traversing up its parent directories.
 If not given, Syberia will try to intelligently discern the current
 Syberia project by first looking at the cache for the previously used
