@@ -42,6 +42,7 @@
 #'   be \code{FALSE}).
 syberia_resource <- function(filename, root = syberia_root(), provides = list(),
                              body = TRUE, ...) {
+  # TODO: (RK) Renamed provides to local for consistency with base::source ?
   resource_cache <- .get_registry_key('resource/resource_cache', .get_registry_dir(root))
   resource_key <- function(filename, root) # Given a/b/c/d and a/b, extracts c/d
     substring(tmp <- normalizePath(filename), nchar(normalizePath(root)) + 1, nchar(tmp))
