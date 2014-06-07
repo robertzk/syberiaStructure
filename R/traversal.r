@@ -231,6 +231,14 @@ syberia_objects <- function(pattern = '', type = NULL, subtype = NULL, root = sy
   # Find the objects that have the same name as their parent directory
   dir_objects <- grep('([^/]+)\\/\\1\\.r', all_files,
                      value = TRUE, ignore.case = TRUE)
+  # Find the objects that live in idempotent directories.
+  idempotent_dirs <- unique(Filter(Negate(is.null),
+    lapply(all_files, function(file) {
+      dir_basename <- basename(dn <- dirname(file))
+      potential_files <- file.path(dn, paste0(dir_basename, c('.r', '.R')))
+      potential_files <- file_path_with_potential_nulls(root, type, potential_files)
+      if (any(vapply(potential_files, file.exists, logical(1)))) dn
+  })))
 
   # Remove any object files in same directories as the dir_objects
   lies_in_dir <- function(file, dir) substring(file, 1, nchar(dir)) == dir
@@ -238,7 +246,8 @@ syberia_objects <- function(pattern = '', type = NULL, subtype = NULL, root = sy
     any(vapply(dirs, lies_in_dir, logical(1), file = file))
 
   remaining_objects <- vapply(all_files, Negate(in_any_dir), logical(1),
-                             dirs = vapply(dir_objects, dirname, character(1)))
+                             #dirs = vapply(dir_objects, dirname, character(1)))
+                            dirs = idempotent_dirs)
   remaining_objects <- all_files[remaining_objects]
 
   objects <- c(dir_objects, remaining_objects)
