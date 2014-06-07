@@ -122,7 +122,16 @@ is.syberia_project <- function(filename) {
 #' @return a list of filenames containing syberia models
 syberia_models <- function(pattern = '', env = c('dev', 'prod'),
                            root = syberia_root(), by_mtime = TRUE, fixed = FALSE) {
-  syberia_objects(pattern, 'models', env, root, by_mtime, fixed)
+  for (env_name in env)
+    if (tolower(substring(pattern, 1, nchar(env_name))) == tolower(env_name)) {
+      # If the pattern has "dev" or "prod" in the beginning, look only
+      # in that environment.
+      env <- env_name
+      pattern <- substring(pattern, nchar(env_name) + 1, nchar(pattern))
+      break 
+    } 
+  unlist(lapply(env, function(env_name) file.path(env_name,
+    syberia_objects(pattern, file.path(root, 'models', env_name), by_mtime, fixed))))
 }
 
 #' Find all the data sources in a Syberia project.
@@ -188,15 +197,11 @@ syberia_data_sources <- function(pattern = '', type = "sources", root = syberia_
 #'   Namely, it will look for adjacent instances of such characters
 #'   regardless of any interpolating characters. For example,
 #'   'ace' will match 'abcde' but also 'abcdfghe' but not 'aebcd'.
-#' @param type character. A subdirectory to look in. For example,
-#'   \code{type = 'models'} will look in the \code{models} subdirectory
-#'   of the root directory of the Syberia project.
-#' @param subtype character. A subdirectory to look in inside of the
-#'   subdirectory given by \code{type}. For example,
-#'   \code{type = 'models', subtype = 'dev'} will look in the \code{dev}
-#'   subdirectory of the \code{models} subdirectory of the root directory
-#'   of the Syberia project.
-#' @param root character. The root of the syberia project. The default
+#' @param base character. A subdirectory to look in. For example,
+#'   \code{type = file.path(syberia_root(), 'models')} will look in the
+#'   \code{models} subdirectory of the root directory of the currently
+#'   active Syberia project, whereas the same with \code{'models/dev'}
+#'   will look in the \code{models/dev} subdirectory. The default
 #'   is \code{syberia_root()}.
 #' @param by_mtime logical. Whether or not to sort the models in descending
 #'   order by last modified time. The default is \code{TRUE}.
@@ -207,56 +212,52 @@ syberia_data_sources <- function(pattern = '', type = "sources", root = syberia_
 #' @export
 #' @return a list of filenames containing syberia objects
 #' @name syberia_objects
-syberia_objects <- function(pattern = '', type = NULL, subtype = NULL, root = syberia_root(),
+syberia_objects <- function(pattern = '', base = syberia_root(),
                            by_mtime = TRUE, fixed = FALSE) {
+  stopifnot(length(base) == 1)
+  fixed <- !identical(fixed, FALSE) # Ensure this parameter is logical.
 
-  stopifnot(is.syberia_project(root))
-  file_path_with_potential_nulls <-
-    function(...) do.call("file.path", Filter(Negate(is.null), list(...)))
-  path <- file_path_with_potential_nulls(root, type, subtype)
-  all_files <- unlist(lapply(subtype %||% list(NULL), function(name)
-    file_path_with_potential_nulls(name, list.files(
-      file_path_with_potential_nulls(root, type, name), recursive = TRUE)
-    )
-  ))
+  all_files <- list.files(base, recursive = TRUE)
 
+  # Idempotent objects are those whose filename is the same as the
+  # name of the directory they reside in. This is helpful for, e.g.,
+  # helper functions.
+  idempotent_objects <- grep("/([^/]+)/\\1\\.[rR]$", all_files, value = TRUE)
+  idempotent_objects <- vapply(idempotent_objects, dirname, character(1))
+
+  # Find the files that belong in directories of idempotent objects --
+  # that is, helper files, and exclude those from being processable
+  # by this function completely.
+  helper_functions <- vapply(all_files,
+    function(file) is.element(dirname(file), idempotent_objects), logical(1))
+  all_files <- all_files[!helper_functions]
+
+  # We now apply the filter to all files and the idempotent objects --
+  # this separation is necessary to prevent things like looking for "2.1.2"
+  # catching "model/2.1.1/2.1.1", which would be wrong.
   if (!identical(pattern, '')) {
-    if (identical(fixed, FALSE)) {
+    if (!fixed) {
       pattern <- gsub('([]./\\*+()])', '\\\\\\1', pattern)
       pattern <- gsub('([^\\])', '\\1.*', pattern) # turn this into ctrl+p
     }
-    all_files <- all_files[grep(pattern, all_files, fixed = !identical(fixed, FALSE))]
+    all_files <- grep(pattern, all_files, fixed = fixed,
+                      value = TRUE, ignore.case = TRUE)
+    idempotent_objects <- grep(pattern, idempotent_objects, fixed = fixed,
+                               FALSE, value = TRUE, ignore.case = TRUE)
   }
 
-  # Find the objects that have the same name as their parent directory
-  dir_objects <- grep('([^/]+)\\/\\1\\.r', all_files,
-                     value = TRUE, ignore.case = TRUE)
-  # Find the objects that live in idempotent directories.
-  idempotent_dirs <- unique(Filter(Negate(is.null),
-    lapply(all_files, function(file) {
-      dir_basename <- basename(dn <- dirname(file))
-      potential_files <- file.path(dn, paste0(dir_basename, c('.r', '.R')))
-      potential_files <- file_path_with_potential_nulls(root, type, potential_files)
-      if (any(vapply(potential_files, file.exists, logical(1)))) dn
-  })))
+  # Finally, put the results together: we were looking for either
+  # non-idempotent or idempotent objects passing the filter, being careful
+  # to not use the whole path of the latter.
+  all_files <- unname(c(all_files, idempotent_objects))
 
-  # Remove any object files in same directories as the dir_objects
-  lies_in_dir <- function(file, dir) substring(file, 1, nchar(dir)) == dir
-  in_any_dir <- function(file, dirs) 
-    any(vapply(dirs, lies_in_dir, logical(1), file = file))
+  if (identical(by_mtime, TRUE)) {
+    descending_by_modification_time <-
+      -vapply(file.path(base, all_files),
+              function(f) file.info(f)$mtime, numeric(1))
+    all_files <- all_files[order(descending_by_modification_time)]
+  }
 
-  remaining_objects <- vapply(all_files, Negate(in_any_dir), logical(1),
-                             #dirs = vapply(dir_objects, dirname, character(1)))
-                            dirs = idempotent_dirs)
-  remaining_objects <- all_files[remaining_objects]
-
-  objects <- c(dir_objects, remaining_objects)
-
-  if (identical(by_mtime, TRUE))
-    objects <- objects[
-      order(-vapply(file_path_with_potential_nulls(root, type, objects),
-                    function(f) file.info(f)$mtime, numeric(1)))]
-
-  objects
+  all_files
 }
 
