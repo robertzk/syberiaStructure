@@ -171,8 +171,7 @@ syberia_models <- function(pattern = '', env = c('dev', 'prod'),
 syberia_data_sources <- function(pattern = '', type = "sources", root = syberia_root(),
                                  by_mtime = TRUE, fixed = FALSE) {
   stopifnot(type %in% c('sources', 'test'))
-  # TODO(RK): Make removing the "sources/" prefix a parameter in syberia_objects instead
-  gsub('^[^/]+/', '', syberia_objects(pattern, 'data', type, root, by_mtime, fixed))
+  gsub(syberia_objects(pattern, file.path(root, 'data', type), by_mtime, fixed))
 }
 
 #' Find all the syberia objects of the given type and subtype in a Syberia project.
@@ -222,7 +221,7 @@ syberia_objects <- function(pattern = '', base = syberia_root(),
   # Idempotent objects are those whose filename is the same as the
   # name of the directory they reside in. This is helpful for, e.g.,
   # helper functions.
-  idempotent_objects <- grep("/([^/]+)/\\1\\.[rR]$", all_files, value = TRUE)
+  idempotent_objects <- grep("([^/]+)/\\1\\.[rR]$", all_files, value = TRUE)
   idempotent_objects <- vapply(idempotent_objects, dirname, character(1))
 
   # Find the files that belong in directories of idempotent objects --
@@ -249,7 +248,7 @@ syberia_objects <- function(pattern = '', base = syberia_root(),
   # Finally, put the results together: we were looking for either
   # non-idempotent or idempotent objects passing the filter, being careful
   # to not use the whole path of the latter.
-  all_files <- unname(c(all_files, idempotent_objects))
+  all_files <- unname(c(all_files, names(idempotent_objects)))
 
   if (identical(by_mtime, TRUE)) {
     descending_by_modification_time <-

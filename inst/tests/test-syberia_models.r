@@ -11,8 +11,8 @@ local({
   test_that('it can discriminate between directoried and non-directoried models', {
     models <- c('model_one/model_one.r', 'model_one/helper.r', 'model_two.r')
     environment(syberia_objects)$list.files <- function(...) models
-    expect_identical(syberia_models('dev', by_mtime = FALSE),
-                     file.path('dev', models[c(1,3)]))
+    expect_true(setequal(syberia_models('dev', by_mtime = FALSE),
+                file.path('dev', models[c(1,3)])))
   })
 
   test_that('it can use modified time to sort models', {
