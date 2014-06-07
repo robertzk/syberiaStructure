@@ -212,7 +212,7 @@ syberia_data_sources <- function(pattern = '', type = "sources", root = syberia_
 #' @return a list of filenames containing syberia objects
 #' @name syberia_objects
 syberia_objects <- function(pattern = '', base = syberia_root(),
-                           by_mtime = TRUE, fixed = FALSE) {
+                            by_mtime = TRUE, fixed = FALSE) {
   stopifnot(length(base) == 1)
   fixed <- !identical(fixed, FALSE) # Ensure this parameter is logical.
 
