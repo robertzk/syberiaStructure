@@ -68,7 +68,6 @@ syberia_resource <- function(filename, root = syberia_root(), provides = list(),
     } 
     resource_info <- file.info(filename)
   }
-  browser()
 
   current_details <- list(info = resource_info)
   if (body) current_details$body <- paste(readLines(filename), collapse = "\n")
