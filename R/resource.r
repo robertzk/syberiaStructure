@@ -168,3 +168,4 @@ syberia_stack <- function(value, all = FALSE) {
   else if (identical(all, FALSE)) resource_stack$pop()
   else resource_stack$pop_all()
 }
+
