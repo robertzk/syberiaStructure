@@ -42,12 +42,6 @@
 #'   be \code{FALSE}).
 syberia_resource <- function(filename, root = syberia_root(), provides = list(),
                              body = TRUE, ...) {
-  resource_cache <- .get_registry_key('resource/resource_cache', .get_registry_dir(root))
-  resource_key <- function(filename, root) # Given a/b/c/d and a/b, extracts c/d
-    substring(tmp <- normalizePath(filename), nchar(normalizePath(root)) + 1, nchar(tmp))
-  resource_key <- resource_key(filename, root)
-  cache_details <- resource_cache[[resource_key]]
-
   if (!is.environment(provides)) {
     provides <- if (length(provides) == 0) new.env() else as.environment(provides)
     parent.env(provides) <- get_cache('runtime/current_env') %||% new.env()
@@ -68,6 +62,12 @@ syberia_resource <- function(filename, root = syberia_root(), provides = list(),
     } 
     resource_info <- file.info(filename)
   }
+
+  resource_cache <- .get_registry_key('resource/resource_cache', .get_registry_dir(root))
+  resource_key <- function(filename, root) # Given a/b/c/d and a/b, extracts c/d
+    substring(tmp <- normalizePath(filename), nchar(normalizePath(root)) + 1, nchar(tmp))
+  resource_key <- resource_key(filename, root)
+  cache_details <- resource_cache[[resource_key]]
 
   current_details <- list(info = resource_info)
   if (body) current_details$body <- paste(readLines(filename), collapse = "\n")
