@@ -53,11 +53,23 @@ syberia_resource <- function(filename, root = syberia_root(), provides = list(),
     parent.env(provides) <- get_cache('runtime/current_env') %||% new.env()
   }
 
-  if (!file.exists(filename))
-    stop("Syberia resource '", filename, "' in syberia project '", root,
-         "' does not exist.", call. = FALSE)
+  resource_info <- if (file.exists(filename)) file.info(filename)
+  if (is.null(resource_info) || resource_info$isdir) {
+    base <- if (resource_info$isdir) filename else dirname(filename)
+    resource_object <- syberia_objects(pattern = basename(filename),
+                                       base = base, fixed = TRUE)
+    filename <- file.path(base, resource_object)
+    if (length(filename) > 1) {
+      stop("Multiple syberia resources found: ",
+           paste0(filename, collapse = ", "), call. = FALSE)
+    } else if (length(filename) == 0) {
+      stop("Syberia resource '", filename, "' in syberia project '", root,
+           "' does not exist.", call. = FALSE)
+    } 
+    resource_info <- file.info(filename)
+  }
+  browser()
 
-  resource_info <- file.info(filename)
   current_details <- list(info = resource_info)
   if (body) current_details$body <- paste(readLines(filename), collapse = "\n")
 

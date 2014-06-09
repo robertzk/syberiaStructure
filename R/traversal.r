@@ -215,6 +215,8 @@ syberia_objects <- function(pattern = '', base = syberia_root(),
                             by_mtime = TRUE, fixed = FALSE) {
   stopifnot(length(base) == 1)
   fixed <- !identical(fixed, FALSE) # Ensure this parameter is logical.
+  strip_extension <- function(x) gsub('\\.[rR]$', '', x)
+  abs_dirname <- function(x) if ((tmp <- dirname(x)) == '.') base else x
 
   all_files <- list.files(base, recursive = TRUE)
 
@@ -222,28 +224,34 @@ syberia_objects <- function(pattern = '', base = syberia_root(),
   # name of the directory they reside in. This is helpful for, e.g.,
   # helper functions.
   idempotent_objects <- grep("([^/]+)/\\1\\.[rR]$", all_files, value = TRUE)
-  idempotent_objects <- vapply(idempotent_objects, dirname, character(1))
+  base_files <- all_files[!grepl("/", all_files, fixed = TRUE)] # TODO: (RK) Make OS-agnostic
+  base_idempotent_objects <- 
+    Filter(function(filename) strip_extension(filename) == basename(base), base_files)
+  idempotent_objects <- c(idempotent_objects, base_idempotent_objects)
+  idempotent_objects <- vapply(idempotent_objects, abs_dirname, character(1))
 
   # Find the files that belong in directories of idempotent objects --
   # that is, helper files, and exclude those from being processable
   # by this function completely.
   helper_functions <- vapply(all_files,
-    function(file) is.element(dirname(file), idempotent_objects), logical(1))
+    function(file) is.element(abs_dirname(file), idempotent_objects), logical(1))
   all_files <- all_files[!helper_functions]
 
   # We now apply the filter to all files and the idempotent objects --
   # this separation is necessary to prevent things like looking for "2.1.2"
   # catching "model/2.1.1/2.1.1", which would be wrong.
   if (!identical(pattern, '')) {
-    pattern <- gsub('\\.[rR]$', '', pattern) # Strip file extension
+    pattern <- strip_extension(pattern) # Strip file extension
     if (!fixed) {
       pattern <- gsub('([]./\\*+()])', '\\\\\\1', pattern)
       pattern <- gsub('([^\\])', '\\1.*', pattern) # turn this into ctrl+p
     }
-    all_files <- grep(pattern, all_files, fixed = fixed,
-                      value = TRUE, ignore.case = TRUE)
-    idempotent_objects <- grep(pattern, idempotent_objects, fixed = fixed,
-                               FALSE, value = TRUE, ignore.case = TRUE)
+    suppressWarnings({ # ignore.case = T with fixed = T gives harmless warning 
+      all_files <- grep(pattern, all_files, fixed = fixed,
+                        value = TRUE, ignore.case = TRUE)
+      idempotent_objects <- grep(pattern, idempotent_objects, fixed = fixed,
+                                 FALSE, value = TRUE, ignore.case = TRUE)
+    })
   }
 
   # Finally, put the results together: we were looking for either
