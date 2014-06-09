@@ -235,6 +235,7 @@ syberia_objects <- function(pattern = '', base = syberia_root(),
   # this separation is necessary to prevent things like looking for "2.1.2"
   # catching "model/2.1.1/2.1.1", which would be wrong.
   if (!identical(pattern, '')) {
+    pattern <- gsub('\\.[rR]$', '', pattern) # Strip file extension
     if (!fixed) {
       pattern <- gsub('([]./\\*+()])', '\\\\\\1', pattern)
       pattern <- gsub('([^\\])', '\\1.*', pattern) # turn this into ctrl+p
