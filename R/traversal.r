@@ -127,7 +127,7 @@ syberia_models <- function(pattern = '', env = c('dev', 'prod'),
       # If the pattern has "dev" or "prod" in the beginning, look only
       # in that environment.
       env <- env_name
-      pattern <- substring(pattern, nchar(env_name) + 1, nchar(pattern))
+      pattern <- substring(pattern, nchar(env_name) + 2, nchar(pattern))
       break 
     } 
   unlist(lapply(env, function(env_name) file.path(env_name,
@@ -216,7 +216,7 @@ syberia_objects <- function(pattern = '', base = syberia_root(),
   stopifnot(length(base) == 1)
   fixed <- !identical(fixed, FALSE) # Ensure this parameter is logical.
   strip_extension <- function(x) gsub('\\.[rR]$', '', x)
-  abs_dirname <- function(x) if ((tmp <- dirname(x)) == '.') base else x
+  abs_dirname <- function(x) if ((tmp <- dirname(x)) == '.') base else tmp
 
   all_files <- list.files(base, recursive = TRUE)
 
@@ -249,8 +249,8 @@ syberia_objects <- function(pattern = '', base = syberia_root(),
     suppressWarnings({ # ignore.case = T with fixed = T gives harmless warning 
       all_files <- grep(pattern, all_files, fixed = fixed,
                         value = TRUE, ignore.case = TRUE)
-      idempotent_objects <- grep(pattern, idempotent_objects, fixed = fixed,
-                                 FALSE, value = TRUE, ignore.case = TRUE)
+      idempotent_objects <- idempotent_objects[
+        grep(pattern, names(idempotent_objects), fixed = fixed, FALSE, ignore.case = TRUE)]
     })
   }
 

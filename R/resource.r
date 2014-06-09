@@ -110,6 +110,13 @@ syberia_resource <- function(filename, root = syberia_root(), provides = list(),
 #' @export
 syberia_resource_with_modification_tracking <- function(filename, root, check_helpers = TRUE, ...) {
   resource <- syberia_resource(filename, root, ...)
+  # Store memory of this call to a stack in the cache, so we can "re-play" it
+  # when a syberia model gets re-run next time. That is how we know we must, 
+  # e.g., re-compile some stages because some just-in-time resources (like
+  # tundra containers) were modified.
+  if (identical(check_helpers, TRUE))
+    syberia_stack(list(filename = normalizePath(filename), root = root))
+
   if (resource$current$info$mtime > resource$cached$info$mtime %||% 0)
     set_cache(TRUE, 'runtime/any_modified')
   else if (check_helpers && !identical(TRUE, get_cache('runtime/any_modified'))) {
