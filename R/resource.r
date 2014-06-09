@@ -57,8 +57,8 @@ syberia_resource <- function(filename, root = syberia_root(), provides = list(),
       stop("Multiple syberia resources found: ",
            paste0(filename, collapse = ", "), call. = FALSE)
     } else if (length(filename) == 0) {
-      stop("Syberia resource '", filename, "' in syberia project '", root,
-           "' does not exist.", call. = FALSE)
+      stop("Syberia resource ", sQuote(filename), " in syberia project ",
+           sQuote(root), " does not exist.", call. = FALSE)
     } 
     resource_info <- file.info(filename)
   }
