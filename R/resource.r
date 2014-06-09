@@ -134,3 +134,37 @@ syberia_resource_with_modification_tracking <- function(filename, root, check_he
   resource
 }
 
+#' A helper interface for a stack of syberia resources.
+#'
+#' This function is meant to be used by syberia for pushing and popping
+#' resource reference onto a stack, e.g., to keep track of dependencies
+#' for a given syberia model.
+#'
+#' This function is meant to be used as follows. Calling \code{syberia_stack()}
+#' pops the latest value off the stack. If no value exists, the stack gets
+#' created in the syberiaStructure cache with key 'resource_stack' if it
+#' is not present, or otherwise returns NULL.
+#' 
+#' If a single unnamed value is passed, like \code{syberia_stack("foo")},
+#' it is pushed onto the stack (if the stack does not exist in the cache,
+#' it gets created extemporaneously).
+#'
+#' @param value ANY. Push a value onto the stac.
+#' @param all logical. Whether or not to pop and return all values from
+#'   the stack. The default is \code{FALSE}.
+#' @return the popped value(s)
+#' @examples
+#' \dontrun{
+#'   syberia_stack(all = TRUE) # Create a new stack
+#'   lapply(1:5, syberia_stack) # Push 1 through 5 onto the stack
+#'   syberia_stack(all = TRUE) # Clear the stack and return as.list(1:5)
+#' }
+syberia_stack <- function(value, all = FALSE) {
+  if (!is.element('resource_stack', get_cache_names()))
+    set_cache(stack(), 'resource_stack')
+  resource_stack <- get_cache('resource_stack')
+  if (!missing(value)) resource_stack$push(value)
+  else if (resource_stack$empty()) NULL
+  else if (identical(all, FALSE)) resource_stack$pop()
+  else resource_stack$pop_all()
+}
