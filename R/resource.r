@@ -20,6 +20,8 @@
 #'   to provide to the file.
 #' @param body logical. Whether or not the fetch the body of the file
 #'   in the `current` and `cached` output lists.
+#' @param soft logical. Whether or not to modify the cache to reflect
+#'   the file modification time and other details.
 #' @param ... additional arguments to pass to the \code{base::source}
 #'   function that gets executed when the `value` is accessed.
 #' @return a four-element list with names `current`, `cached`, `value`,
@@ -41,7 +43,7 @@
 #'   executed by Syberia (if this was never the case, `modified` will
 #'   be \code{FALSE}).
 syberia_resource <- function(filename, root = syberia_root(), provides = list(),
-                             body = TRUE, ...) {
+                             body = TRUE, soft = FALSE, ...) {
   if (!is.environment(provides)) {
     provides <- if (length(provides) == 0) new.env() else as.environment(provides)
     parent.env(provides) <- get_cache('runtime/current_env') %||% new.env()
@@ -73,7 +75,8 @@ syberia_resource <- function(filename, root = syberia_root(), provides = list(),
   if (body) current_details$body <- paste(readLines(filename), collapse = "\n")
 
   resource_cache[[resource_key]] <- current_details
-  .set_registry_key('resource/resource_cache', resource_cache, .get_registry_dir(root))
+  if (identical(soft, FALSE))
+    .set_registry_key('resource/resource_cache', resource_cache, .get_registry_dir(root))
 
   # TODO: (RK) For large syberia projects, maybe this should dynamically
   # switch to tracking resources using the file system rather than one big list.
