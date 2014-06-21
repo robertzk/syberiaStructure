@@ -9,5 +9,5 @@
 #'
 #' @name syberiaStructure
 #' @docType package
-#' @import devtools
+#' @import devtools memoise
 NULL
