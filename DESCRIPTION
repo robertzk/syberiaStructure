@@ -9,6 +9,8 @@ Description: Syberia provides an opinionated unified framework for
     classifier-specific modeling parameters.
     syberiaStructure is a package that facilitates the file-system
     traversal components of Syberia.
+Author: Robert Krzyzanowski <technoguyrob@gmail.com>
+Maintainer: Robert Krzyzanowski <technoguyrob@gmail.com>
 Authors@R: c(person("Robert", "Krzyzanowski",
     email = "technoguyrob@gmail.com", role = c("aut", "cre")))
 Depends:
