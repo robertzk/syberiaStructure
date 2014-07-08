@@ -16,7 +16,7 @@ test_that('it can use modified time to sort models', {
                              models = list(dev = list('model1.r', 'model2.r'))), {
     Sys.sleep(0.001) # Touch the second model to make it modified later.
     writeLines('', file.path(tempdir, 'models', 'dev', 'model2.r'))
-    models <- c('model2.r', 'model1.r')
+    models <- c('model1.r', 'model2.r')
     expect_identical(syberia_models('dev', root = tempdir, by_mtime = TRUE),
                      rev(file.path('dev', models)))
   })
