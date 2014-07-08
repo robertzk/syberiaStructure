@@ -3,8 +3,8 @@
 \alias{syberia_objects}
 \title{Find all the syberia objects of the given type and subtype in a Syberia project.}
 \usage{
-syberia_objects(pattern = "", type = NULL, subtype = NULL,
-  root = syberia_root(), by_mtime = TRUE, fixed = FALSE)
+syberia_objects(pattern = "", base = syberia_root(), by_mtime = TRUE,
+  fixed = FALSE)
 }
 \arguments{
 \item{pattern}{character. A set of characters by which to filter.
@@ -13,17 +13,11 @@ Namely, it will look for adjacent instances of such characters
 regardless of any interpolating characters. For example,
 'ace' will match 'abcde' but also 'abcdfghe' but not 'aebcd'.}
 
-\item{type}{character. A subdirectory to look in. For example,
-\code{type = 'models'} will look in the \code{models} subdirectory
-of the root directory of the Syberia project.}
-
-\item{subtype}{character. A subdirectory to look in inside of the
-subdirectory given by \code{type}. For example,
-\code{type = 'models', subtype = 'dev'} will look in the \code{dev}
-subdirectory of the \code{models} subdirectory of the root directory
-of the Syberia project.}
-
-\item{root}{character. The root of the syberia project. The default
+\item{base}{character. A subdirectory to look in. For example,
+\code{type = file.path(syberia_root(), 'models')} will look in the
+\code{models} subdirectory of the root directory of the currently
+active Syberia project, whereas the same with \code{'models/dev'}
+will look in the \code{models/dev} subdirectory. The default
 is \code{syberia_root()}.}
 
 \item{by_mtime}{logical. Whether or not to sort the models in descending

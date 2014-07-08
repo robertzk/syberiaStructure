@@ -4,7 +4,7 @@
 \title{Fetch info about a file relative to a syberia directory.}
 \usage{
 syberia_resource(filename, root = syberia_root(), provides = list(),
-  body = TRUE, ...)
+  body = TRUE, soft = FALSE, ...)
 }
 \arguments{
 \item{filename}{character. The filename of the R script to execute
@@ -18,6 +18,9 @@ to provide to the file.}
 
 \item{body}{logical. Whether or not the fetch the body of the file
 in the `current` and `cached` output lists.}
+
+\item{soft}{logical. Whether or not to modify the cache to reflect
+the file modification time and other details.}
 
 \item{...}{additional arguments to pass to the \code{base::source}
 function that gets executed when the `value` is accessed.}
