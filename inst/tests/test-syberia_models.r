@@ -1,30 +1,26 @@
 require(testthatsomemore)
 context('syberia_models')
 
-local({
-  syberia_objects <- force(syberia_objects)
-  stub(syberia_objects, is.syberia_project) <- function(...) TRUE
-  stub(syberia_objects, file.exists) <- function(...) TRUE
-  stub(syberia_objects, syberia_root) <- function(...) ''
-  stub(syberia_models, syberia_objects) <- syberia_objects
-
-  test_that('it can discriminate between directoried and non-directoried models', {
+test_that('it can discriminate between directoried and non-directoried models', {
+  within_file_structure(list('syberia.config', models = list(dev = list(
+      model_one = list(model_one.r = 'foo', helper.r = 'bar'),
+      model_two.r = 'blah'))), {
     models <- c('model_one/model_one.r', 'model_one/helper.r', 'model_two.r')
-    environment(syberia_objects)$list.files <- function(...) models
-    expect_identical(syberia_models('dev', by_mtime = FALSE),
-                     file.path('dev', models[c(1,3)]))
+    expect_true(setequal(syberia_models('dev', root = tempdir, by_mtime = FALSE),
+                file.path('dev', models[c(1,3)])))
   })
+})
 
-  test_that('it can use modified time to sort models', {
-    models <- c("model1.r", "model2.r")
-    environment(syberia_objects)$list.files <- function(...) models
-    environment(syberia_objects)$file.info <- 
-      function(f) list(mtime = as.integer(gsub('[^0-9]', '', f)))
-    expect_identical(syberia_models('dev', by_mtime = TRUE),
+test_that('it can use modified time to sort models', {
+  within_file_structure(list('syberia.config',
+                             models = list(dev = list('model1.r', 'model2.r'))), {
+    Sys.sleep(0.001) # Touch the second model to make it modified later.
+    writeLines('', file.path(tempdir, 'models', 'dev', 'model2.r'))
+    models <- c('model1.r', 'model2.r')
+    expect_identical(syberia_models('dev', root = tempdir, by_mtime = TRUE),
                      rev(file.path('dev', models)))
   })
-
-  # TODO(RK): Write a test for smart interpolation on v.s. off
-
 })
+
+# TODO(RK): Write a test for smart interpolation on v.s. off
 
