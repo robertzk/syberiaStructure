@@ -1,12 +1,12 @@
+require(testthatsomemore)
 context('syberia_models')
 
 local({
   syberia_objects <- force(syberia_objects)
-  environment(syberia_objects) <- new.env(parent = environment(syberia_objects))
-  environment(syberia_objects)$is.syberia_project <- function(...) TRUE
-  environment(syberia_objects)$file.exists <- function(...) TRUE
-  environment(syberia_objects)$syberia_root <- function(...) ''
-  environment(syberia_models)$syberia_objects <- syberia_objects
+  stub(syberia_objects, is.syberia_project) <- function(...) TRUE
+  stub(syberia_objects, file.exists) <- function(...) TRUE
+  stub(syberia_objects, syberia_root) <- function(...) ''
+  stub(syberia_models, syberia_objects) <- syberia_objects
 
   test_that('it can discriminate between directoried and non-directoried models', {
     models <- c('model_one/model_one.r', 'model_one/helper.r', 'model_two.r')

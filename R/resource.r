@@ -44,6 +44,7 @@
 #'   be \code{FALSE}).
 syberia_resource <- function(filename, root = syberia_root(), provides = list(),
                              body = TRUE, soft = FALSE, ...) {
+
   if (!is.environment(provides)) {
     provides <- if (length(provides) == 0) new.env() else as.environment(provides)
     parent.env(provides) <- get_cache('runtime/current_env') %||% new.env()
