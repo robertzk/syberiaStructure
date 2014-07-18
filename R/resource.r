@@ -137,7 +137,7 @@ syberia_resource_with_modification_tracking <- function(filename, root, check_he
       helper_files <- list.files(resource_dir, recursive = TRUE)
       # Trigger syberia_resource_with_modification_tracking to update whether
       # or not any helper files were modified.
-      helpers_files <- setdiff(helper_files, basename(filename))
+      helper_files <- setdiff(helper_files, basename(filename))
       for (file in helper_files) syberia_resource_with_modification_tracking(
         file.path(resource_dir, file), root, body = FALSE, check_helpers = FALSE)
     }
