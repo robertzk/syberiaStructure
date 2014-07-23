@@ -51,8 +51,8 @@ syberia_resource <- function(filename, root = syberia_root(), provides = list(),
   }
 
   resource_info <- if (file.exists(filename)) file.info(filename)
-  if (is.null(resource_info) || resource_info$isdir) {
-    base <- if (resource_info$isdir) filename else dirname(filename)
+  if (is.null(resource_info) || isTRUE(resource_info$isdir)) {
+    base <- if (isTRUE(resource_info$isdir)) filename else dirname(filename)
     resource_object <- syberia_objects(pattern = basename(filename),
                                        base = base, fixed = TRUE)
     filename <- file.path(base, resource_object)
