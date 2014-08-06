@@ -103,6 +103,7 @@ syberia_resource <- function(filename, root = syberia_root(), provides = list(),
 #' encountered the resource. If a modification is spotted, the
 #' Syberia cache entry `runtime/any_modified` will be set to \code{TRUE}.
 #'
+#' @name syberia_resource_with_modification_tracking 
 #' @param filename character. See the \code{filename} parameter of
 #'   \code{syberia_resource}.
 #' @param root character. See the \code{root} parameter of \code{syberia_resource}.

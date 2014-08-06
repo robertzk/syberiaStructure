@@ -69,9 +69,6 @@ syberia_root <- function(filename = NULL, error = FALSE) {
 
 # TODO(RK): A syberia_set<- replace method that can set, e.g., the root explicitly
 
-#' @export
-syberia_project <- syberia_root
-
 #' Verifies that the given filename points to the base of a syberia project.
 #'
 #' @param filename character. The directory supposedly containing a syberia

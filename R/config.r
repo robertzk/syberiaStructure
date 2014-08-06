@@ -1,5 +1,6 @@
 #' Fetch the configuration for a Syberia project. 
 #'
+#' @name syberia_config
 #' @param root character. The root of the Syberia project. The
 #'   default is \code{syberia_root()}.
 #' @param exists_check logical. If \code{TRUE}, it will only return
