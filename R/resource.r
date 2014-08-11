@@ -51,8 +51,8 @@ syberia_resource <- function(filename, root = syberia_root(), provides = list(),
   }
 
   resource_info <- if (file.exists(filename)) file.info(filename)
-  if (is.null(resource_info) || resource_info$isdir) {
-    base <- if (resource_info$isdir) filename else dirname(filename)
+  if (is.null(resource_info) || isTRUE(resource_info$isdir)) {
+    base <- if (isTRUE(resource_info$isdir)) filename else dirname(filename)
     resource_object <- syberia_objects(pattern = basename(filename),
                                        base = base, fixed = TRUE)
     filename <- file.path(base, resource_object)
@@ -138,7 +138,7 @@ syberia_resource_with_modification_tracking <- function(filename, root, check_he
       helper_files <- list.files(resource_dir, recursive = TRUE)
       # Trigger syberia_resource_with_modification_tracking to update whether
       # or not any helper files were modified.
-      helpers_files <- setdiff(helper_files, basename(filename))
+      helper_files <- setdiff(helper_files, basename(filename))
       for (file in helper_files) syberia_resource_with_modification_tracking(
         file.path(resource_dir, file), root, body = FALSE, check_helpers = FALSE)
     }
