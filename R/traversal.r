@@ -54,6 +54,7 @@ syberia_root <- function(filename = NULL, error = FALSE) {
 
   repeat {
     if (file.exists(file.path(filename, 'config', 'application.R'))) break
+    if (file.exists(file.path(filename, 'syberia.config'))) break
     prev_dir <- filename
     filename <- suppressWarnings(normalizePath(dirname(filename)))
     if (filename == prev_dir)
