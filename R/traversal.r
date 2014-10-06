@@ -256,6 +256,8 @@ syberia_objects <- function(pattern = '', base = syberia_root(),
   # non-idempotent or idempotent objects passing the filter, being careful
   # to not use the whole path of the latter.
   all_files <- unname(c(all_files, names(idempotent_objects)))
+  all_files <- Filter(function(x) tolower(substring(x, nchar(x) - 1, nchar(x))) == '.r',
+                      all_files)
 
   if (identical(by_mtime, TRUE)) {
     descending_by_modification_time <-

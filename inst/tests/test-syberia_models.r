@@ -14,11 +14,17 @@ test_that('it can discriminate between directoried and non-directoried models', 
 test_that('it can use modified time to sort models', {
   within_file_structure(list('syberia.config',
                              models = list(dev = list('model1.r', 'model2.r'))), {
-    Sys.sleep(0.001) # Touch the second model to make it modified later.
+    Sys.sleep(1) # Touch the second model to make it modified later.
     writeLines('', file.path(tempdir, 'models', 'dev', 'model2.r'))
     models <- c('model1.r', 'model2.r')
     expect_identical(syberia_models('dev', root = tempdir, by_mtime = TRUE),
                      rev(file.path('dev', models)))
+  })
+})
+
+test_that('it excludes non-R files', {
+  within_file_structure(list('syberia.config', models = list(dev = list('model1.r', 'model2.md'))), {
+    expect_identical(syberia_models('dev', root = tempdir), file.path('dev', 'model1.r'))
   })
 })
 
